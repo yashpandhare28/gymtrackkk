@@ -1,21 +1,20 @@
 # 🏋️ GymTrack
 
-GymTrack is a beginner-friendly Python-based gym membership management system.
+GymTrack is a beginner-friendly, terminal-based gym membership management system built using Python.
 
-It allows gym staff to manage members, membership plans, payment status, and export member data to Excel.
+It helps gym staff manage member records and export the data to an Excel file.
 
 ## 🚀 Features
 
 - Add new gym members
-- Store member details
+- View all gym members
+- Update member details
+- Delete members
 - Choose membership plans
-- Calculate membership expiry dates
 - Track payment status
-- View gym members
-- Search/manage member records
-- Export member data to Excel
 - Store data using JSON
-- User-friendly terminal interface
+- Export member data to Excel
+- Attractive terminal interface using Rich
 
 ## 🛠️ Technologies Used
 
@@ -23,9 +22,23 @@ It allows gym staff to manage members, membership plans, payment status, and exp
 - JSON
 - Rich
 - OpenPyXL
-- Python Dateutil
 - Git
 - GitHub
+
+## 📋 CRUD Operations
+
+| Operation | Function |
+|----------|----------|
+| Create | Add Member |
+| Read | View Members |
+| Update | Update Member |
+| Delete | Delete Member |
+
+## 📊 Excel Export
+
+The application can export all gym member records to:
+
+`exports/gym_members.xlsx`
 
 ## 📁 Project Structure
 

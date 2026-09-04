@@ -1,5 +1,4 @@
 from datetime import datetime
-from dateutil.relativedelta import relativedelta
 import json
 import os
 
@@ -7,10 +6,10 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.prompt import Prompt
+from openpyxl import Workbook
 
 
 FILE_PATH = "data/members.json"
-
 console = Console()
 
 
@@ -32,108 +31,61 @@ def save_members(members):
 # CREATE
 # -----------------------------
 
+# -----------------------------
+# CREATE
+# -----------------------------
+
 def add_member():
-    
+
     console.print(
         Panel(
-            "[bold cyan]➕ ADD NEW MEMBER[/bold cyan]",
+            "[bold cyan]ADD NEW MEMBER[/bold cyan]",
             border_style="cyan"
         )
     )
 
-    member_id = Prompt.ask("Member ID")
+    member_id = Prompt.ask("Enter Member ID")
     name = Prompt.ask("Name")
     age = Prompt.ask("Age")
     phone = Prompt.ask("Phone")
 
-    # -----------------------------
-    # MEMBERSHIP PLAN
-    # -----------------------------
-
-    console.print("\n[bold]Select Membership Plan:[/bold]")
-    console.print("1. Monthly")
-    console.print("2. Quarterly")
-    console.print("3. Half-Yearly")
-    console.print("4. Yearly")
+    # Membership Plan
+    console.print("\n[bold cyan]Select Membership Plan[/bold cyan]")
+    console.print("1. 1 Month")
+    console.print("2. 6 Months")
+    console.print("3. 1 Year")
 
     plan_choice = Prompt.ask(
-        "Enter choice",
-        choices=["1", "2", "3", "4"]
+        "Choose plan",
+        choices=["1", "2", "3"]
     )
 
     if plan_choice == "1":
-        plan = "Monthly"
-        months = 1
-
+        plan = "1 Month"
     elif plan_choice == "2":
-        plan = "Quarterly"
-        months = 3
-
-    elif plan_choice == "3":
-        plan = "Half-Yearly"
-        months = 6
-
+        plan = "6 Months"
     else:
-        plan = "Yearly"
-        months = 12
+        plan = "1 Year"
 
-    # -----------------------------
-    # START DATE
-    # -----------------------------
+    # Start Date
+    start_date = Prompt.ask("Start Date (YYYY-MM-DD)")
 
-    while True:
-
-        start_date = Prompt.ask(
-            "Start Date (YYYY-MM-DD)"
-        )
-
-        try:
-            start = datetime.strptime(
-                start_date,
-                "%Y-%m-%d"
-            )
-            break
-
-        except ValueError:
-            console.print(
-                "[bold red]Invalid date! "
-                "Please use YYYY-MM-DD.[/bold red]"
-            )
-
-    # -----------------------------
-    # EXPIRY DATE
-    # -----------------------------
-
-    expiry = start + relativedelta(
-        months=months
-    )
-
-    expiry_date = expiry.strftime(
-        "%Y-%m-%d"
-    )
-
-    # -----------------------------
-    # PAYMENT STATUS
-    # -----------------------------
-
-    console.print("\n[bold]Select Payment Status:[/bold]")
+    # Payment Status
+    console.print("\n[bold cyan]Select Payment Status[/bold cyan]")
     console.print("1. Paid")
     console.print("2. Pending")
 
     payment_choice = Prompt.ask(
-        "Enter choice",
+        "Choose payment status",
         choices=["1", "2"]
     )
 
     if payment_choice == "1":
-        payment_status = "Paid"
+        payment = "Paid"
     else:
-        payment_status = "Pending"
+        payment = "Pending"
 
-    # -----------------------------
-    # CREATE MEMBER
-    # -----------------------------
-
+    # Create member
     member = {
         "member_id": member_id,
         "name": name,
@@ -141,33 +93,20 @@ def add_member():
         "phone": phone,
         "plan": plan,
         "start_date": start_date,
-        "expiry_date": expiry_date,
-        "payment_status": payment_status
+        "payment_status": payment
     }
 
-    # -----------------------------
-    # SAVE MEMBER
-    # -----------------------------
-
     members = load_members()
-
     members.append(member)
-
     save_members(members)
 
     console.print(
         Panel(
-            f"[bold green]✓ Member Added Successfully![/bold green]\n\n"
-            f"Member ID   : {member_id}\n"
-            f"Name        : {name}\n"
-            f"Plan        : {plan}\n"
-            f"Start Date  : {start_date}\n"
-            f"Expiry Date : {expiry_date}\n"
-            f"Payment     : {payment_status}",
-            title="GymTrack",
+            "[bold green]Member Added Successfully![/bold green]",
             border_style="green"
         )
     )
+
 # -----------------------------
 # READ
 # -----------------------------
@@ -176,31 +115,28 @@ def view_members():
     members = load_members()
 
     if not members:
-        console.print(
-            Panel(
-                "No members found.",
-                title="Members",
-                border_style="yellow"
-            )
-        )
+        console.print("[yellow]No members found.[/yellow]")
         return
 
-    table = Table(
-        title="🏋️ Gym Members",
-        show_lines=True
-    )
+    table = Table(title="Gym Members")
 
-    table.add_column("Member ID", style="cyan")
+    table.add_column("ID", style="cyan")
     table.add_column("Name")
     table.add_column("Age")
     table.add_column("Phone")
+    table.add_column("Plan")
+    table.add_column("Start Date")
+    table.add_column("Payment")
 
     for member in members:
         table.add_row(
             member["member_id"],
             member["name"],
             member["age"],
-            member["phone"]
+            member["phone"],
+            member["plan"],
+            member["start_date"],
+            member["payment_status"]
         )
 
     console.print(table)
@@ -216,38 +152,42 @@ def update_member():
     members = load_members()
 
     for member in members:
-
         if member["member_id"] == member_id:
 
-            console.print("\n[bold yellow]Current Details[/bold yellow]")
-            console.print(f"Name  : {member['name']}")
-            console.print(f"Age   : {member['age']}")
-            console.print(f"Phone : {member['phone']}")
-
             member["name"] = Prompt.ask(
-                "Enter new name",
+                "New Name",
                 default=member["name"]
             )
 
             member["age"] = Prompt.ask(
-                "Enter new age",
+                "New Age",
                 default=member["age"]
             )
 
             member["phone"] = Prompt.ask(
-                "Enter new phone",
+                "New Phone",
                 default=member["phone"]
+            )
+
+            member["plan"] = Prompt.ask(
+                "New Plan",
+                default=member["plan"]
+            )
+
+            member["payment_status"] = Prompt.ask(
+                "Payment Status",
+                choices=["Paid", "Pending"],
+                default=member["payment_status"]
             )
 
             save_members(members)
 
             console.print(
-                "\n[bold green]✓ Member updated successfully![/bold green]"
+                "[green]Member updated successfully![/green]"
             )
-
             return
 
-    console.print("\n[bold red]✗ Member not found.[/bold red]")
+    console.print("[red]Member not found.[/red]")
 
 
 # -----------------------------
@@ -260,51 +200,36 @@ def delete_member():
     members = load_members()
 
     for member in members:
-
         if member["member_id"] == member_id:
 
             members.remove(member)
             save_members(members)
 
             console.print(
-                "\n[bold green]✓ Member deleted successfully![/bold green]"
+                "[green]Member deleted successfully![/green]"
             )
-
             return
 
-    console.print("\n[bold red]✗ Member not found.[/bold red]")
-# ==============================
+    console.print("[red]Member not found.[/red]")
+
+
+# -----------------------------
 # EXPORT TO EXCEL
-# ==============================
+# -----------------------------
 
 def export_to_excel():
-
-    from openpyxl import Workbook
-
     members = load_members()
 
     if not members:
-        console.print(
-            Panel(
-                "No members available to export.",
-                title="Excel Export",
-                border_style="yellow"
-            )
-        )
+        console.print("[yellow]No members to export.[/yellow]")
         return
 
-    # Create exports folder
-    if not os.path.exists("exports"):
-        os.makedirs("exports")
+    os.makedirs("exports", exist_ok=True)
 
-    file_path = "exports/gym_members.xlsx"
-
-    # Create Excel workbook
     workbook = Workbook()
     sheet = workbook.active
     sheet.title = "Gym Members"
 
-    # Excel headings
     headers = [
         "Member ID",
         "Name",
@@ -312,13 +237,11 @@ def export_to_excel():
         "Phone",
         "Plan",
         "Start Date",
-        "Expiry Date",
         "Payment Status"
     ]
 
     sheet.append(headers)
 
-    # Add member data
     for member in members:
         sheet.append([
             member["member_id"],
@@ -327,101 +250,79 @@ def export_to_excel():
             member["phone"],
             member["plan"],
             member["start_date"],
-            member["expiry_date"],
             member["payment_status"]
         ])
 
-    # Adjust column widths
-    for column in sheet.columns:
-
-        max_length = 0
-        column_letter = column[0].column_letter
-
-        for cell in column:
-            if cell.value:
-                max_length = max(
-                    max_length,
-                    len(str(cell.value))
-                )
-
-        sheet.column_dimensions[column_letter].width = (
-            max_length + 3
-        )
-
-    # Save Excel file
-    workbook.save(file_path)
+    workbook.save("exports/gym_members.xlsx")
 
     console.print(
         Panel(
-            f"[bold green]✓ Excel file created successfully![/bold green]\n\n"
-            f"Location: {file_path}",
-            title="📊 Excel Export",
+            "[bold green]Excel file created successfully![/bold green]\n"
+            "Location: exports/gym_members.xlsx",
+            title="Excel Export",
             border_style="green"
         )
     )
-
-# -----------------------------
-# CREATE DATA FILE
-# -----------------------------
-
-if not os.path.exists("data"):
-    os.makedirs("data")
-
-if not os.path.exists(FILE_PATH):
-    with open(FILE_PATH, "w") as file:
-        json.dump([], file)
 
 
 # -----------------------------
 # MAIN MENU
 # -----------------------------
 
-while True:
+def main():
+    os.makedirs("data", exist_ok=True)
 
-    console.clear()
+    if not os.path.exists(FILE_PATH):
+        save_members([])
 
-    console.print(
-        Panel(
-            "[bold cyan]🏋️ GYMTRACK[/bold cyan]\n"
-            "Gym Member Management System",
-            title="Welcome",
-            border_style="cyan"
-        )
-    )
+    while True:
+        console.clear()
 
-    console.print("\n[bold]Main Menu[/bold]")
-    console.print("[cyan]1.[/cyan] 👤 Add Member")
-    console.print("[cyan]2.[/cyan] 📋 View Members")
-    console.print("[cyan]3.[/cyan] ✏️  Update Member")
-    console.print("[cyan]4.[/cyan] 🗑️  Delete Member")
-    console.print("[cyan]5.[/cyan] 📊 Export to Excel")
-    console.print("[cyan]6.[/cyan] 🚪 Exit")
-
-    choice = Prompt.ask(
-        "\nChoose an option",
-        choices=["1", "2", "3", "4", "5","6"]
-    )
-
-    if choice == "1":
-        add_member()
-
-    elif choice == "2":
-        view_members()
-
-    elif choice == "3":
-        update_member()
-
-    elif choice == "4":
-        delete_member()
-
-    elif choice == "5":
-        export_to_excel()
-
-    elif choice == "6":
         console.print(
-        "\n[bold cyan]💪 Thanks for using GymTrack![/bold cyan]"
-    )
+            Panel(
+                "[bold cyan]GYMTRACK[/bold cyan]\n"
+                "Gym Member Management System",
+                title="Welcome",
+                border_style="cyan"
+            )
+        )
 
-        break
+        console.print("\n[bold]Main Menu[/bold]")
+        console.print("1. Add Member")
+        console.print("2. View Members")
+        console.print("3. Update Member")
+        console.print("4. Delete Member")
+        console.print("5. Export to Excel")
+        console.print("6. Exit")
 
-    Prompt.ask("\nPress Enter to continue", default="")
+        choice = Prompt.ask(
+            "\nChoose an option",
+            choices=["1", "2", "3", "4", "5", "6"]
+        )
+
+        if choice == "1":
+            add_member()
+
+        elif choice == "2":
+            view_members()
+
+        elif choice == "3":
+            update_member()
+
+        elif choice == "4":
+            delete_member()
+
+        elif choice == "5":
+            export_to_excel()
+
+        elif choice == "6":
+            console.print(
+                "\n[bold cyan]Thanks for using GymTrack![/bold cyan]"
+            )
+            break
+
+        Prompt.ask("\nPress Enter to continue", default="")
+
+
+if __name__ == "__main__":
+    main()
